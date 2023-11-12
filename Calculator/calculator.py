@@ -6,7 +6,7 @@ import os
 # ANS for previous answer
 # > ANS[2] for second previous answer (displayed in log)
 # type manipulation (if both int, answer is int; if at least one float, answer is float)
-# add more operands (currently just 2)
+# add more operands (currently just strictly 2 except power)
 # > note PEMDAS
 # big numbers owo
 # revamp screen
@@ -17,6 +17,7 @@ import os
 # > define screen space
 # >> can be presets (small medium large)
 # refactor (possibly, stringToCenteredLine can be printAsCentered or smthn)
+# handle invalid inputs
 
 
 def printEntryScreen(): 
