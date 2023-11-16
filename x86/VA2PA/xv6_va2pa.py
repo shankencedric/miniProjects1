@@ -38,7 +38,7 @@ class Number:
                 stdMaxChars = TOTALBITS
             case 16 | "hex": 
                 toNewBase = hex
-                stdMaxChars = TOTALBYTES
+                stdMaxChars = TOTALBYTES * 2 # recall: 1 byte = 2 hex chars
             case _: return int(self.val, self.base) 
         
         return toNewBase(int(self.val, self.base))[2:].zfill(stdMaxChars if maxChars == 0 else maxChars)
@@ -62,9 +62,9 @@ def printBin(bin : str, label : str = ""):
             if i != len(bin)-1: print("_", end="")
     print(" [{a} bits]".format(a = len(bin)))
 
-def printAddr(addr : Number, name : str = "?"): 
+def printAddr(addr : Number, name : str = "?", maxChars : int = 0): 
     """Calls `printBin` to print the BIN value, then prints the HEX value right after (i.e., newline, then after `->`)."""
-    printBin(addr.toBase(2), name)
+    printBin(addr.toBase(2, maxChars), name)
     print("  -> {addr}".format(addr=addr.toBase(16)))
 
 def printHeader(string : str, writeableSpaces : int = 63, fillerChar : str = "-"):
@@ -75,7 +75,7 @@ def printHeader(string : str, writeableSpaces : int = 63, fillerChar : str = "-"
     print((fillerChar * leftSpaces), string, (fillerChar * rightSpaces) + "\n")
 
 
-def VAtoPA(va : Number, PD_base : Number) -> Number: 
+def VAtoPA(va : Number = None, PD_base : Number = None) -> Number: 
 
     def findEntry(base : Number, index : Number) -> Number: 
         return Number(base.toBase(10) + index.toBase(10) * ENTRYSIZE)
@@ -85,14 +85,34 @@ def VAtoPA(va : Number, PD_base : Number) -> Number:
     printHeader("xv6 VA to PA translator (by me)", fillerChar="=")
     print("NOTE 1: Resize this terminal's width and/or font size to fit the dashes (----) below or equals (====) above in ONE LINE.\n")
     print("NOTE 2: Enter input values WITHOUT '0x' or '0b'. Just the numbers.\n")
-    print("NOTE 3: The structure of each step is seen below:\n\n\n")
+    print("NOTE 3: The structure of each step is seen below (in ~~~~):\n\n")
+    
+    # Structure
+    print("~"*65)
     printHeader("used variables as the TITLE here")
     print("label / NAME\t:\tvalue in BINARY [NUM of bits, usually 32]")
-    print("  -> value in HEX")    
-    input("\n\n\n\n\n\n\n(Press enter to continue...)")
+    print("  -> value in HEX\n")    
+    print("~"*65)
+    
+    input("\n\nPress enter to continue...")
+    
+    # Input (if none)
+    if (va == None or PD_base == None):
+        os.system('cls')
+        printHeader("INPUT", fillerChar="=")
+        if va == None: va = Number(input("Enter VA: "), base=16)
+        if PD_base == None: PD_base = Number(input("Enter base addr of PD: "), base=16)
+        
+    # Review Input
     os.system('cls')
+    printHeader("YOUR INPUT")
+    printAddr(va, "VA")
+    printAddr(PD_base, "PDbase")
+
+    input("\n\n(Press enter to continue...)")
     
     ## GIVEN
+    os.system('cls')
     printHeader("(GIVEN)")
     printAddr(va, "VA")
     printAddr(PD_base, "PDbase")
@@ -103,9 +123,9 @@ def VAtoPA(va : Number, PD_base : Number) -> Number:
     PD_idx = va.machineIndexing(31, 22)
     PT_idx = va.machineIndexing(21, 12)
     offset = Number(va.machineIndexing(11, 1).toBase(2, maxChars=11) + va.toBase(2)[len(va.toBase(2))-1], base=2) # just a weird edge case
-    printAddr(PD_idx, "PDidx")
-    printAddr(PT_idx, "PTidx")
-    printAddr(offset, "offset")
+    printAddr(PD_idx, "PDidx", 10)
+    printAddr(PT_idx, "PTidx", 10)
+    printAddr(offset, "offset", 12)
     print()
     
     ## compute for which Page Directory Entry (PDE); ie, which entry / where is this entry
@@ -154,9 +174,8 @@ def VAtoPA(va : Number, PD_base : Number) -> Number:
 # example 
 def main(): 
     os.system('cls') # remove these to not clear terminal
-    va = Number("00002de0", base=16)
-    pdbase = Number("0df22000", base=16)
-    VAtoPA(va, pdbase)
+    VAtoPA()
 
 if __name__ == "__main__":
     main()
+    
